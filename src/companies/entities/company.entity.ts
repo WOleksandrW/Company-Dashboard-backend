@@ -1,6 +1,7 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { Base } from 'src/entities/base.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Image } from 'src/images/entities/image.entity';
 
 @Entity()
 export class Company extends Base {
@@ -18,4 +19,8 @@ export class Company extends Base {
 
   @ManyToOne(() => User, (user) => user.companies, { nullable: false })
   user: User;
+
+  @OneToOne(() => Image, (image) => image.company, { nullable: true })
+  @JoinColumn()
+  image: Image;
 }

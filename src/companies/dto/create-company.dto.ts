@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsAlphanumeric,
   IsInt,
@@ -24,8 +25,10 @@ export class CreateCompanyDto {
   address: string;
 
   @IsInt()
+  @Type(() => Number)
   capital: number;
 
   @IsInt({ message: 'User ID must be an integer.' })
+  @Type(() => Number)
   userId: number;
 }

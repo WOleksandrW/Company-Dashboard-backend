@@ -4,11 +4,13 @@ import { CompaniesController } from './companies.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
 import { UsersModule } from 'src/users/users.module';
+import { ImagesModule } from 'src/images/images.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Company]),
-    forwardRef(() => UsersModule)
+    forwardRef(() => UsersModule),
+    ImagesModule
   ],
   controllers: [CompaniesController],
   providers: [CompaniesService],
