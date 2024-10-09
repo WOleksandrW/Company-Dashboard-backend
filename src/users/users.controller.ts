@@ -3,8 +3,11 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { ERole } from 'src/enums/ERole';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -14,6 +17,7 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Roles(ERole.ADMIN, ERole.SUPERADMIN)
   @Get()
   findAll() {
     return this.usersService.findAll();
