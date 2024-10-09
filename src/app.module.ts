@@ -6,6 +6,8 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { CompaniesModule } from './companies/companies.module';
 import { Company } from './companies/entities/company.entity';
+import { AuthModule } from './auth/auth.module';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -21,9 +23,13 @@ import { Company } from './companies/entities/company.entity';
       logging: true,
     }),
     UsersModule,
-    CompaniesModule
+    CompaniesModule,
+    AuthModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    JwtStrategy
+  ],
 })
 export class AppModule {}

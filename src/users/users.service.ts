@@ -30,6 +30,10 @@ export class UsersService {
     return this.usersRepository.findOneBy({ id });
   }
 
+  findOneByEmail(email: string) {
+    return this.usersRepository.findOneBy({ email });
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     const { password, ...rest } = updateUserDto;
     let body: { password?: string } = {};
