@@ -1,17 +1,19 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { CompaniesService } from 'src/companies/companies.service';
 
 @Injectable()
 export class UsersService {
   private readonly saltRounds = 10;
 
   constructor(
-    @InjectRepository(User) private readonly usersRepository: Repository<User>
+    @InjectRepository(User) private readonly usersRepository: Repository<User>,
+    @Inject(forwardRef(() => CompaniesService)) private readonly companiesService: CompaniesService
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -73,6 +75,8 @@ export class UsersService {
 
   async remove(id: number) {
     await this.findOne(id);
+
+    await this.companiesService.removeByUser(id);
 
     return this.usersRepository.softDelete({ id });
   }

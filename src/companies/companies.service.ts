@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -13,7 +13,7 @@ import { EOrder } from 'src/enums/EOrder';
 export class CompaniesService {
   constructor(
     @InjectRepository(Company) private readonly companiesRepository: Repository<Company>,
-    private readonly usersService: UsersService
+    @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService
   ) {}
 
   async create(createCompanyDto: CreateCompanyDto) {
@@ -125,5 +125,9 @@ export class CompaniesService {
     await this.findOne(id);
 
     return this.companiesRepository.softDelete({ id });
+  }
+
+  async removeByUser(id: number) {
+    return this.companiesRepository.softDelete({ user: { id } });
   }
 }
