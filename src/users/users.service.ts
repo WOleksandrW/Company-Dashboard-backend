@@ -26,7 +26,8 @@ export class UsersService {
 
     const hashPassword = await bcrypt.hash(password, this.saltRounds);
 
-    return this.usersRepository.insert({ ...rest, password: hashPassword });
+    const created = await this.usersRepository.save({ ...rest, password: hashPassword });
+    return this.findOne(created.id);
   }
 
   async findAll() {
@@ -78,7 +79,8 @@ export class UsersService {
       body.password = await bcrypt.hash(password, this.saltRounds);
     }
 
-    return this.usersRepository.update(id, { ...rest, ...body });
+    await this.usersRepository.update(id, { ...rest, ...body });
+    return this.findOne(id);
   }
 
   async remove(id: number) {
@@ -86,6 +88,10 @@ export class UsersService {
 
     await this.companiesService.removeByUser(id);
 
-    return this.usersRepository.softDelete({ id });
+    await this.usersRepository.softDelete({ id });
+
+    return {
+      message: 'User has been successfully removed'
+    };
   }
 }

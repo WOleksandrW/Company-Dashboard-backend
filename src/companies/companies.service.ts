@@ -26,7 +26,8 @@ export class CompaniesService {
 
     const user = await this.usersService.findOne(userId);
 
-    return this.companiesRepository.insert({ ...rest, user });
+    const created = await this.companiesRepository.save({ ...rest, user });
+    return this.findOne(created.id);
   }
 
   async findAll({
@@ -122,16 +123,25 @@ export class CompaniesService {
       body.user = await this.usersService.findOne(userId);
     }
 
-    return this.companiesRepository.update(id, { ...rest, ...body });
+    await this.companiesRepository.update(id, { ...rest, ...body });
+    return this.findOne(id);
   }
 
   async remove(id: number) {
     await this.findOne(id);
 
-    return this.companiesRepository.softDelete({ id });
+    await this.companiesRepository.softDelete({ id });
+
+    return {
+      message: 'Company has been successfully removed'
+    };
   }
 
   async removeByUser(id: number) {
-    return this.companiesRepository.softDelete({ user: { id } });
+    await this.companiesRepository.softDelete({ user: { id } });
+
+    return {
+      message: 'Companies have been successfully removed'
+    };
   }
 }
