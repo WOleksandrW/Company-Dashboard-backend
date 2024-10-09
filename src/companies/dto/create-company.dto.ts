@@ -25,4 +25,7 @@ export class CreateCompanyDto {
 
   @IsInt()
   capital: number;
+
+  @IsInt({ message: 'User ID must be an integer.' })
+  userId: number;
 }

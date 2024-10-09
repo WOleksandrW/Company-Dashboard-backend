@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { Base } from 'src/entities/base.entity';
+import { Company } from 'src/companies/entities/company.entity';
 
 @Entity()
 export class User extends Base {
@@ -14,4 +15,7 @@ export class User extends Base {
 
   @Column({ type: 'enum', enum: ['USER', 'ADMIN', 'SUPER-ADMIN'] })
   role: string;
+
+  @OneToMany(() => Company, (company) => company.user)
+  companies: Company[];
 }
