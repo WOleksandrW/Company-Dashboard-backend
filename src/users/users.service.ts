@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { CompaniesService } from 'src/companies/companies.service';
+import { userSelect } from 'src/constants/select-constants';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +30,10 @@ export class UsersService {
   }
 
   async findAll() {
-    const list = await this.usersRepository.find();
+    const list = await this.usersRepository
+      .createQueryBuilder('user')
+      .select(userSelect)
+      .getMany();
 
     if (list.length === 0) {
       throw new NotFoundException('Users List Not Found');
@@ -39,7 +43,11 @@ export class UsersService {
   }
 
   async findOne(id: number) {
-    const user = await this.usersRepository.findOneBy({ id });
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .select(userSelect)
+      .where('"user".id = :id', { id })
+      .getOne();
 
     if (!user) {
       throw new NotFoundException('User Not Found');

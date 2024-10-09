@@ -8,6 +8,7 @@ import { Company } from './entities/company.entity';
 import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
 import { EOrder } from 'src/enums/EOrder';
+import { userSelect } from 'src/constants/select-constants';
 
 @Injectable()
 export class CompaniesService {
@@ -40,7 +41,8 @@ export class CompaniesService {
   }: GetAllQueryDto) {
     const query = this.companiesRepository
       .createQueryBuilder('company')
-      .leftJoinAndSelect('company.user', 'user');
+      .leftJoinAndSelect('company.user', 'user')
+      .select(['company', ...userSelect]);
 
     // Filter by Company.user
     if (+user) {
@@ -88,10 +90,12 @@ export class CompaniesService {
   }
 
   async findOne(id: number) {
-    const company = await this.companiesRepository.findOne({
-      where: { id },
-      relations: { user: true }
-    });
+    const company = await this.companiesRepository
+      .createQueryBuilder('company')
+      .leftJoinAndSelect('company.user', 'user')
+      .select(['company', ...userSelect])
+      .where('"company".id = :id', { id })
+      .getOne();
 
     if (!company) {
       throw new NotFoundException('Company Not Found');
