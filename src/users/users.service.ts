@@ -1,18 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
+  private readonly saltRounds = 10;
+
   constructor(
     @InjectRepository(User) private readonly usersRepository: Repository<User>
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return this.usersRepository.insert(createUserDto);
+  async create(createUserDto: CreateUserDto) {
+    const { password, ...rest } = createUserDto;
+
+    const hashPassword = await bcrypt.hash(password, this.saltRounds);
+
+    return this.usersRepository.insert({ ...rest, password: hashPassword });
   }
 
   findAll() {
@@ -23,8 +30,15 @@ export class UsersService {
     return this.usersRepository.findOneBy({ id });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return this.usersRepository.update(id, updateUserDto);
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const { password, ...rest } = updateUserDto;
+    let body: { password?: string } = {};
+
+    if (password) {
+      body.password = await bcrypt.hash(password, this.saltRounds);
+    }
+
+    return this.usersRepository.update(id, { ...rest, ...body });
   }
 
   remove(id: number) {
