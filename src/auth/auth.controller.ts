@@ -1,12 +1,13 @@
 import { Body, Controller, Post, ValidationPipe } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ERole } from 'src/enums/role.enum';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { InfiniteToken } from 'src/constants/swagger-constants';
 
+@ApiTags('Auth Controller')
 @Controller('auth')
 export class AuthController {
   constructor(
