@@ -165,7 +165,11 @@ export class CompaniesService {
   }
 
   async remove(id: number) {
-    await this.findOne(id);
+    const company = await this.findOne(id);
+
+    if (company.image) {
+      await this.imagesService.remove(company.image.id);
+    }
 
     await this.companiesRepository.softDelete({ id });
 
@@ -175,6 +179,17 @@ export class CompaniesService {
   }
 
   async removeByUser(id: number) {
+    const companies = await this.companiesRepository.find({
+      where: { user: { id } },
+      relations: ['image']
+    });
+
+    for (const company of companies) {
+      if (company.image) {
+        await this.imagesService.remove(company.image.id);
+      }
+    }
+
     await this.companiesRepository.softDelete({ user: { id } });
 
     return {

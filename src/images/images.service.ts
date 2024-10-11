@@ -34,4 +34,12 @@ export class ImagesService {
     await this.imageRepository.update(id, data);
     return this.findOne(id);
   }
+
+  async remove(id: number) {
+    await this.imageRepository.softDelete({ id });
+
+    return {
+      message: 'Image has been successfully removed'
+    };
+  }
 }

@@ -104,9 +104,13 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    await this.findOne(id);
+    const user = await this.findOne(id);
 
     await this.companiesService.removeByUser(id);
+
+    if (user.image) {
+      await this.imagesService.remove(user.image.id);
+    }
 
     await this.usersRepository.softDelete({ id });
 
