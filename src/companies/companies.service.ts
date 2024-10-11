@@ -9,16 +9,24 @@ import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
 import { EOrder } from 'src/enums/EOrder';
 import { userSelect } from 'src/constants/select-constants';
+import { Image } from 'src/images/entities/image.entity';
+import { ImagesService } from 'src/images/images.service';
 
 @Injectable()
 export class CompaniesService {
   constructor(
     @InjectRepository(Company) private readonly companiesRepository: Repository<Company>,
-    @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService
+    @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
+    private readonly imagesService: ImagesService
   ) {}
 
-  async create(createCompanyDto: CreateCompanyDto) {
+  async create(
+    createCompanyDto: CreateCompanyDto,
+    file?: Express.Multer.File
+  ) {
     const { userId, ...rest } = createCompanyDto;
+
+    let body: { image?: Image } = {};
 
     if (await this.checkIsExist({ title: rest.title })) {
       throw new ConflictException('Title is already in use.');
@@ -26,7 +34,16 @@ export class CompaniesService {
 
     const user = await this.usersService.findOne(userId);
 
-    const created = await this.companiesRepository.save({ ...rest, user });
+    if (file) {
+      body.image = await this.imagesService.uploadImage(file);
+    }
+
+    const created = await this.companiesRepository.save({ ...rest, ...body, user });
+
+    if (body.image) {
+      await this.imagesService.update(body.image.id, { company: created });
+    }
+
     return this.findOne(created.id);
   }
 
@@ -43,7 +60,9 @@ export class CompaniesService {
     const query = this.companiesRepository
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.user', 'user')
-      .select(['company', ...userSelect]);
+      .leftJoinAndSelect('company.image', 'imageCompany')
+      .leftJoinAndSelect('user.image', 'imageUser')
+      .select(['company', ...userSelect, 'imageCompany', 'imageUser']);
 
     // Filter by Company.user
     if (+user) {
@@ -94,7 +113,9 @@ export class CompaniesService {
     const company = await this.companiesRepository
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.user', 'user')
-      .select(['company', ...userSelect])
+      .leftJoinAndSelect('company.image', 'imageCompany')
+      .leftJoinAndSelect('user.image', 'imageUser')
+      .select(['company', ...userSelect, 'imageCompany', 'imageUser'])
       .where('"company".id = :id', { id })
       .getOne();
 
@@ -109,26 +130,46 @@ export class CompaniesService {
     return this.companiesRepository.exists({ where, withDeleted: true });
   }
 
-  async update(id: number, updateCompanyDto: UpdateCompanyDto) {
+  async update(
+    id: number,
+    updateCompanyDto: UpdateCompanyDto,
+    file?: Express.Multer.File
+  ) {
     const company = await this.findOne(id);
 
     const { userId, ...rest } = updateCompanyDto;
-    let body: { user?: User } = {};
+    let body: { user?: User, image?: Image } = {};
 
     if (rest.title && company.title !== rest.title && await this.checkIsExist({ title: rest.title })) {
       throw new ConflictException('Title is already in use.');
     }
 
     if (userId) {
-      body.user = await this.usersService.findOne(userId);
+      const user = await this.usersService.findOne(userId);
+      body.user = user;
+    }
+
+    if (file) {
+      body.image = !!company.image
+        ? await this.imagesService.replaceImage(company.image.id, file)
+        : await this.imagesService.uploadImage(file);
     }
 
     await this.companiesRepository.update(id, { ...rest, ...body });
+
+    if (body.image && !company.image) {
+      await this.imagesService.update(body.image.id, { company });
+    }
+
     return this.findOne(id);
   }
 
   async remove(id: number) {
-    await this.findOne(id);
+    const company = await this.findOne(id);
+
+    if (company.image) {
+      await this.imagesService.remove(company.image.id);
+    }
 
     await this.companiesRepository.softDelete({ id });
 
@@ -138,6 +179,17 @@ export class CompaniesService {
   }
 
   async removeByUser(id: number) {
+    const companies = await this.companiesRepository.find({
+      where: { user: { id } },
+      relations: ['image']
+    });
+
+    for (const company of companies) {
+      if (company.image) {
+        await this.imagesService.remove(company.image.id);
+      }
+    }
+
     await this.companiesRepository.softDelete({ user: { id } });
 
     return {

@@ -9,6 +9,8 @@ import { CompaniesModule } from './companies/companies.module';
 import { Company } from './companies/entities/company.entity';
 import { AuthModule } from './auth/auth.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { ImagesModule } from './images/images.module';
+import { Image } from './images/entities/image.entity';
 
 @Module({
   imports: [
@@ -22,14 +24,15 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       port: 5432,
       password: 'postgres',
       username: 'postgres',
-      entities: [User, Company],
+      entities: [User, Company, Image],
       database: 'companyAppDB',
       synchronize: true,
       logging: true,
     }),
     UsersModule,
     CompaniesModule,
-    AuthModule
+    AuthModule,
+    ImagesModule
   ],
   controllers: [AppController],
   providers: [

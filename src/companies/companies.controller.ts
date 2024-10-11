@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -12,8 +13,12 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
-  create(@Body(ValidationPipe) createCompanyDto: CreateCompanyDto) {
-    return this.companiesService.create(createCompanyDto);
+  @UseInterceptors(FileInterceptor('file'))
+  create(
+    @Body(ValidationPipe) createCompanyDto: CreateCompanyDto,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.companiesService.create(createCompanyDto, file);
   }
 
   @Get()
@@ -27,8 +32,13 @@ export class CompaniesController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body(ValidationPipe) updateCompanyDto: UpdateCompanyDto) {
-    return this.companiesService.update(id, updateCompanyDto);
+  @UseInterceptors(FileInterceptor('file'))
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) updateCompanyDto: UpdateCompanyDto,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.companiesService.update(id, updateCompanyDto, file);
   }
 
   @Delete(':id')
