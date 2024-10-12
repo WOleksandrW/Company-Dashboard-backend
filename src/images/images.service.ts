@@ -1,9 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Image } from './entities/image.entity';
-import { Company } from 'src/companies/entities/company.entity';
-import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class ImagesService {
@@ -17,29 +15,9 @@ export class ImagesService {
 
   async replaceImage(id: number, file: Express.Multer.File) {
     await this.imageRepository.update(id, { data: file.buffer, mimeType: file.mimetype });
-    return this.findOne(id);
-  }
-
-  async findOne(id: number) {
-    const image = await this.imageRepository.findOneBy({ id });
-
-    if (!image) {
-      throw new NotFoundException('Image Not Found');
-    }
-
-    return image;
-  }
-
-  async update(id: number, data: { company?: Company; user?: User }) {
-    await this.imageRepository.update(id, data);
-    return this.findOne(id);
   }
 
   async remove(id: number) {
-    await this.imageRepository.softDelete({ id });
-
-    return {
-      message: 'Image has been successfully removed'
-    };
+    await this.imageRepository.delete({ id });
   }
 }

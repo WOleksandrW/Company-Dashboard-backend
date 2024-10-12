@@ -39,11 +39,6 @@ export class CompaniesService {
     }
 
     const created = await this.companiesRepository.save({ ...rest, ...body, user });
-
-    if (body.image) {
-      await this.imagesService.update(body.image.id, { company: created });
-    }
-
     return this.findOne(created.id);
   }
 
@@ -137,7 +132,7 @@ export class CompaniesService {
   ) {
     const company = await this.findOne(id);
 
-    const { userId, ...rest } = updateCompanyDto;
+    const { userId, file: fileCommand, ...rest } = updateCompanyDto;
     let body: { user?: User, image?: Image } = {};
 
     if (rest.title && company.title !== rest.title && await this.checkIsExist({ title: rest.title })) {
@@ -150,17 +145,16 @@ export class CompaniesService {
     }
 
     if (file) {
-      body.image = !!company.image
-        ? await this.imagesService.replaceImage(company.image.id, file)
-        : await this.imagesService.uploadImage(file);
+      if (company.image) {
+        await this.imagesService.replaceImage(company.image.id, file)
+      } else {
+        body.image = await this.imagesService.uploadImage(file);
+      }
+    } else if ((fileCommand === null || fileCommand === 'null') && company.image) {
+      await this.imagesService.remove(company.image.id);
     }
 
     await this.companiesRepository.update(id, { ...rest, ...body });
-
-    if (body.image && !company.image) {
-      await this.imagesService.update(body.image.id, { company });
-    }
-
     return this.findOne(id);
   }
 

@@ -20,7 +20,7 @@ export class Company extends Base {
   @ManyToOne(() => User, (user) => user.companies, { nullable: false })
   user: User;
 
-  @OneToOne(() => Image, (image) => image.company, { nullable: true })
+  @OneToOne(() => Image, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn()
   image: Image;
 }

@@ -21,7 +21,7 @@ export class User extends Base {
   @OneToMany(() => Company, (company) => company.user)
   companies: Company[];
 
-  @OneToOne(() => Image, (image) => image.user, { nullable: true })
+  @OneToOne(() => Image, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn()
   image: Image;
 }

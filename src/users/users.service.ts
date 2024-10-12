@@ -77,7 +77,7 @@ export class UsersService {
   ) {
     const user = await this.findOne(id);
 
-    const { password, ...rest } = updateUserDto;
+    const { password, file: fileCommand, ...rest } = updateUserDto;
     let body: { password?: string, image?: Image } = {};
 
     if (rest.email && user.email !== rest.email && await this.checkIsExist({ email: rest.email })) {
@@ -89,17 +89,16 @@ export class UsersService {
     }
 
     if (file) {
-      body.image = !!user.image
-        ? await this.imagesService.replaceImage(user.image.id, file)
-        : await this.imagesService.uploadImage(file);
+      if (user.image) {
+        await this.imagesService.replaceImage(user.image.id, file)
+      } else {
+        body.image = await this.imagesService.uploadImage(file);
+      }
+    } else if ((fileCommand === null || fileCommand === 'null') && user.image) {
+      await this.imagesService.remove(user.image.id);
     }
 
     await this.usersRepository.update(id, { ...rest, ...body });
-
-    if (body.image && !user.image) {
-      await this.imagesService.update(body.image.id, { user });
-    }
-
     return this.findOne(id);
   }
 
