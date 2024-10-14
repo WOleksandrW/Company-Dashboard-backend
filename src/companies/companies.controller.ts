@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Query, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -22,8 +22,8 @@ export class CompaniesController {
   }
 
   @Get()
-  findAll(@Query(ValidationPipe) query: GetAllQueryDto) {
-    return this.companiesService.findAll(query);
+  findAll(@Req() req, @Query(ValidationPipe) query: GetAllQueryDto) {
+    return this.companiesService.findAll(query, req.user.id);
   }
 
   @Get(':id')

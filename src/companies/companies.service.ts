@@ -11,6 +11,7 @@ import { EOrder } from 'src/enums/EOrder';
 import { userSelect } from 'src/constants/select-constants';
 import { Image } from 'src/images/entities/image.entity';
 import { ImagesService } from 'src/images/images.service';
+import { ERole } from 'src/enums/ERole';
 
 @Injectable()
 export class CompaniesService {
@@ -52,7 +53,9 @@ export class CompaniesService {
     capitalMin,
     capitalMax,
     search
-  }: GetAllQueryDto) {
+  }: GetAllQueryDto, activeUserId: number) {
+    const activeUser = await this.usersService.findOne(activeUserId);
+
     const query = this.companiesRepository
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.user', 'user')
@@ -61,7 +64,9 @@ export class CompaniesService {
       .select(['company', ...userSelect, 'imageCompany', 'imageUser']);
 
     // Filter by Company.user
-    if (+user) {
+    if (activeUser.role === ERole.USER) {
+      query.where('company.user = :user', { user: activeUser.id });
+    } else if (+user) {
       query.where('company.user = :user', { user: +user });
     }
 
