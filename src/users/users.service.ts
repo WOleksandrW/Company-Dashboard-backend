@@ -4,6 +4,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { GetAllQueryDto } from './dto/get-all-query.dto';
 import { User } from './entities/user.entity';
 import { CompaniesService } from 'src/companies/companies.service';
 import { userSelect } from 'src/constants/select-constants';
@@ -33,18 +34,48 @@ export class UsersService {
     return this.findOne(created.id);
   }
 
-  async findAll() {
-    const list = await this.usersRepository
+  async findAll({ limit, page, createdAt, role, search }: GetAllQueryDto) {
+    const query = this.usersRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.image', 'image')
-      .select([...userSelect, 'image'])
-      .getMany();
+      .select([...userSelect, 'image']);
 
-    if (list.length === 0) {
-      throw new NotFoundException('Users List Not Found');
+    // Filter by Role
+    if (role) {
+      query.andWhere('"user".role = :role', { role });
     }
 
-    return list;
+    // Filter by Date
+    if (createdAt) {
+      query.andWhere(`TO_CHAR("user"."createdAt", 'YYYY-MM-DD') LIKE :createdAt`, { createdAt: `${createdAt}%` });
+    }
+
+    // Filter by Search
+    if (search) {
+      query.andWhere('("user".username ILIKE :value OR "user".email ILIKE :value)', {
+        value: `%${search}%`
+      });
+    }
+
+    const totalAmount = await query.getCount();
+
+    // Pagination
+    if (+limit) {
+      query.limit(+limit);
+
+      if (+page) {
+        query.offset(+limit * (+page - 1));
+      }
+    }
+
+    const list = await query.getMany();
+
+    return { 
+      list,
+      totalAmount,
+      limit: +limit,
+      page: +page
+    };
   }
 
   async findOne(id: number) {

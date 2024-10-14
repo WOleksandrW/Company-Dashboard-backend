@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { GetAllQueryDto } from './dto/get-all-query.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -20,8 +21,8 @@ export class UsersController {
 
   @Roles(ERole.ADMIN, ERole.SUPERADMIN)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query(ValidationPipe) query: GetAllQueryDto) {
+    return this.usersService.findAll(query);
   }
 
   @Get('me')

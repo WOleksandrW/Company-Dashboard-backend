@@ -50,7 +50,8 @@ export class CompaniesService {
     serviceOrder,
     createdAt,
     capitalMin,
-    capitalMax
+    capitalMax,
+    search
   }: GetAllQueryDto) {
     const query = this.companiesRepository
       .createQueryBuilder('company')
@@ -66,12 +67,20 @@ export class CompaniesService {
 
     // Filter by Date
     if (createdAt) {
-      query.where(`TO_CHAR(company.createdAt, 'YYYY-MM-DD') LIKE :createdAt`, { createdAt: `${createdAt}%` });
+      query.andWhere(`TO_CHAR(company.createdAt, 'YYYY-MM-DD') LIKE :createdAt`, { createdAt: `${createdAt}%` });
     }
 
     // Filter by Capital
-    if (capitalMin && capitalMax) {
-      query.where('company.capital >= :capitalMin AND company.capital <= :capitalMax', { capitalMin, capitalMax });
+    if (capitalMin) {
+      query.andWhere('company.capital >= :capitalMin', { capitalMin });
+    }
+    if (capitalMax) {
+      query.andWhere('company.capital <= :capitalMax', { capitalMax });
+    }
+
+    // Filter by Search
+    if (search) {
+      query.andWhere('company.title ILIKE :value', { value: `%${search}%` });
     }
 
     // Order
@@ -86,6 +95,8 @@ export class CompaniesService {
 
     query.orderBy(orderConfig);
 
+    const totalAmount = await query.getCount();
+
     // Pagination
     if (+limit) {
       query.limit(+limit);
@@ -97,11 +108,12 @@ export class CompaniesService {
 
     const list = await query.getMany();
 
-    if (list.length === 0) {
-      throw new NotFoundException('Companies List Not Found');
-    }
-
-    return list;
+    return { 
+      list,
+      totalAmount,
+      limit: +limit,
+      page: +page
+    };
   }
 
   async findOne(id: number) {

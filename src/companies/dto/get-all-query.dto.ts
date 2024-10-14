@@ -45,4 +45,8 @@ export class GetAllQueryDto {
   @Min(0)
   @Type(() => Number)
   capitalMax?: number;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }
