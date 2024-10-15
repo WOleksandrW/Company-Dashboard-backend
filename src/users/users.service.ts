@@ -1,4 +1,4 @@
-import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -26,6 +26,9 @@ export class UsersService {
 
     if (await this.checkIsExist({ email: rest.email })) {
       throw new ConflictException('Email is already in use.');
+    }
+    if (await this.checkIsExist({ username: rest.username })) {
+      throw new ConflictException('Username is already in use.');
     }
 
     const hashPassword = await bcrypt.hash(password, this.saltRounds);
@@ -106,16 +109,25 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     file?: Express.Multer.File
   ) {
-    const user = await this.findOne(id);
+    const user = await this.usersRepository.findOne({ where: { id }, relations: { image: true } });
+    if (!user) {
+      throw new NotFoundException('User Not Found');
+    }
 
-    const { password, file: fileCommand, ...rest } = updateUserDto;
+    const { password, oldPassword, file: fileCommand, ...rest } = updateUserDto;
     let body: { password?: string, image?: Image } = {};
 
     if (rest.email && user.email !== rest.email && await this.checkIsExist({ email: rest.email })) {
       throw new ConflictException('Email is already in use.');
     }
+    if (rest.username && user.username !== rest.username && await this.checkIsExist({ username: rest.username })) {
+      throw new ConflictException('Username is already in use.');
+    }
 
     if (password) {
+      if (!(await bcrypt.compare(oldPassword ?? '', user.password))) {
+        throw new BadRequestException('Invalid password');
+      }
       body.password = await bcrypt.hash(password, this.saltRounds);
     }
 
