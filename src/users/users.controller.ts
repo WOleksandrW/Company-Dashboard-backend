@@ -7,7 +7,7 @@ import { GetAllQueryDto } from './dto/get-all-query.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
-import { ERole } from 'src/enums/ERole';
+import { ERole } from 'src/enums/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')

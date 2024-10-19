@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { Base } from 'src/entities/base.entity';
 import { Company } from 'src/companies/entities/company.entity';
 import { Image } from 'src/images/entities/image.entity';
-import { ERole } from 'src/enums/ERole';
+import { ERole } from 'src/enums/role.enum';
 
 @Entity()
 export class User extends Base {

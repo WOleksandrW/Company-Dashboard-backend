@@ -10,7 +10,7 @@ import { CompaniesService } from 'src/companies/companies.service';
 import { userSelect } from 'src/constants/select-constants';
 import { Image } from 'src/images/entities/image.entity';
 import { ImagesService } from 'src/images/images.service';
-import { ERole } from 'src/enums/ERole';
+import { ERole } from 'src/enums/role.enum';
 
 const isForbiddenAccess = (activeRole: string, targetRole: string) => (
   (activeRole === ERole.USER) ||

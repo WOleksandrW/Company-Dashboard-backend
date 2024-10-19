@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { ERole } from '../enums/ERole';
+import { ERole } from '../enums/role.enum';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 

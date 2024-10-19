@@ -1,6 +1,6 @@
 import { IsOptional, IsInt, Min, IsString, IsEnum, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EOrder } from 'src/enums/EOrder';
+import { EOrder } from 'src/enums/order.enum';
 
 export class GetAllQueryDto {
   @IsOptional()

@@ -7,11 +7,11 @@ import { GetAllQueryDto } from './dto/get-all-query.dto';
 import { Company } from './entities/company.entity';
 import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
-import { EOrder } from 'src/enums/EOrder';
+import { EOrder } from 'src/enums/order.enum';
 import { userSelect } from 'src/constants/select-constants';
 import { Image } from 'src/images/entities/image.entity';
 import { ImagesService } from 'src/images/images.service';
-import { ERole } from 'src/enums/ERole';
+import { ERole } from 'src/enums/role.enum';
 
 @Injectable()
 export class CompaniesService {
