@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Query, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -8,9 +8,10 @@ import { GetAllQueryDto } from './dto/get-all-query.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { EOrder } from 'src/enums/order.enum';
-import { companySwaggerEntity, companySwaggerPatch, companySwaggerPost, InfiniteToken, userSwaggerPatch } from 'src/constants/swagger-constants';
+import { companySwaggerEntity, companySwaggerPatch, companySwaggerPost, userSwaggerPatch } from 'src/constants/swagger-constants';
 
 @ApiTags('Companies Controller')
+@ApiBearerAuth('Authorization')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('companies')
 export class CompaniesController {
@@ -19,12 +20,6 @@ export class CompaniesController {
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Create a company.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiBody({
     description: 'Company object that needs to be created.',
     schema: { example: { ...companySwaggerPost, userId: companySwaggerEntity.id } }
@@ -44,12 +39,6 @@ export class CompaniesController {
 
   @Get()
   @ApiOperation({ summary: 'Get all companies.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiQuery({
     name: 'user',
     description: 'Filter companies by user',
@@ -118,12 +107,6 @@ export class CompaniesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get the company.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiParam({
     name: 'id',
     description: 'ID of the company to receive.',
@@ -144,12 +127,6 @@ export class CompaniesController {
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Update the company.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiParam({
     name: 'id',
     description: 'ID of the company to update.',
@@ -175,12 +152,6 @@ export class CompaniesController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Remove the company.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiParam({
     name: 'id',
     description: 'ID of the company to remove.',

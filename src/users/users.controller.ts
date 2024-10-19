@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -9,9 +9,10 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { ERole } from 'src/enums/role.enum';
-import { InfiniteToken, userSwaggerEntity, userSwaggerPatch, userSwaggerPost } from 'src/constants/swagger-constants';
+import { userSwaggerEntity, userSwaggerPatch, userSwaggerPost } from 'src/constants/swagger-constants';
 
 @ApiTags('Users Controller')
+@ApiBearerAuth('Authorization')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
@@ -19,12 +20,6 @@ export class UsersController {
 
   @Post()
   @ApiOperation({ summary: 'Create a user.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiBody({
     description: 'User object that needs to be created.',
     schema: { example: { ...userSwaggerPost, password: 'asd@3ASD' } }
@@ -44,12 +39,6 @@ export class UsersController {
   @Roles(ERole.ADMIN, ERole.SUPERADMIN)
   @Get()
   @ApiOperation({ summary: 'Get all users.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiQuery({
     name: 'limit',
     description: 'Limit of users',
@@ -94,12 +83,6 @@ export class UsersController {
 
   @Get('me')
   @ApiOperation({ summary: 'Get the current user.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiResponse({
     status: 200,
     description: 'The user has been successfully received.',
@@ -111,12 +94,6 @@ export class UsersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get the user.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiParam({
     name: 'id',
     description: 'ID of the user to receive.',
@@ -137,12 +114,6 @@ export class UsersController {
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Update the user.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiParam({
     name: 'id',
     description: 'ID of the user to update.',
@@ -168,12 +139,6 @@ export class UsersController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Remove the user.' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Authorization token',
-    required: true,
-    schema: { example: `Bearer ${InfiniteToken}` }
-  })
   @ApiParam({
     name: 'id',
     description: 'ID of the user to remove.',

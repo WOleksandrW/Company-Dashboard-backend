@@ -9,6 +9,14 @@ async function bootstrap() {
     .setTitle('Company Dashboard App API')
     .setDescription('The company dashboard app API description')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT'
+      },
+      'Authorization'
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
