@@ -1,23 +1,23 @@
-import { IsOptional, IsInt, Min, IsString, IsEnum, IsDate } from 'class-validator';
+import { IsOptional, IsInt, IsString, IsEnum, IsDate, IsPositive } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EOrder } from 'src/enums/order.enum';
 
 export class GetAllQueryDto {
   @IsOptional()
-  @IsInt()
-  @Min(1)
+  @IsInt({ message: 'User ID must be an integer' })
+  @IsPositive({ message: 'User ID must be a positive integer' })
   @Type(() => Number)
   user?: number;
 
   @IsOptional()
-  @IsInt()
-  @Min(1)
+  @IsInt({ message: 'Limit must be an integer' })
+  @IsPositive({ message: 'Limit must be a positive integer' })
   @Type(() => Number)
   limit?: number;
 
   @IsOptional()
-  @IsInt()
-  @Min(1)
+  @IsInt({ message: 'Page must be an integer' })
+  @IsPositive({ message: 'Page must be a positive integer' })
   @Type(() => Number)
   page?: number;
 
@@ -35,14 +35,14 @@ export class GetAllQueryDto {
   createdAt?: Date;
 
   @IsOptional()
-  @IsInt()
-  @Min(0)
+  @IsInt({ message: 'Minimal capital must be an integer' })
+  @IsPositive({ message: 'Minimal capital must be a positive integer' })
   @Type(() => Number)
   capitalMin?: number;
 
   @IsOptional()
-  @IsInt()
-  @Min(0)
+  @IsInt({ message: 'Maximal capital must be an integer' })
+  @IsPositive({ message: 'Maximal capital must be a positive integer' })
   @Type(() => Number)
   capitalMax?: number;
 
