@@ -11,7 +11,7 @@ export class Company extends Base {
   @Column({ type: 'varchar', length: 30 })
   service: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', length: 100 })
   address: string;
 
   @Column({ type: 'int' })

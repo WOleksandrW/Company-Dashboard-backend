@@ -6,10 +6,10 @@ import { ERole } from 'src/enums/role.enum';
 
 @Entity()
 export class User extends Base {
-  @Column({ type: 'varchar', length: 15, unique: true })
+  @Column({ type: 'varchar', length: 20, unique: true })
   username: string;
 
-  @Column({ type: 'varchar', length: 40, unique: true })
+  @Column({ type: 'varchar', length: 254, unique: true })
   email: string;
 
   @Column({ type: 'varchar' })
