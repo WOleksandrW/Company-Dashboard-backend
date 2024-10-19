@@ -10,19 +10,12 @@ export class AuthService {
     private readonly jwtService: JwtService
   ) {}
 
-  async validateUser(email: string, password: string) {
+  async login(email: string, password: string) {
     const user = await this.usersService.findOneByEmail(email);
 
-    if (user && await bcrypt.compare(password, user.password)) {
-      const { password, ...rest } = user;
-      return rest;
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Email or password is incorrect');
     }
-
-    throw new UnauthorizedException('Email or password is incorrect');
-  }
-
-  async login(email: string, password: string) {
-    const user = await this.validateUser(email, password);
 
     const payload = { email: user.email, sub: user.id };
     return {
