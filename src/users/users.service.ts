@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +10,13 @@ import { CompaniesService } from 'src/companies/companies.service';
 import { userSelect } from 'src/constants/select-constants';
 import { Image } from 'src/images/entities/image.entity';
 import { ImagesService } from 'src/images/images.service';
+import { ERole } from 'src/enums/ERole';
+
+const isForbiddenAccess = (activeRole: string, targetRole: string) => (
+  (activeRole === ERole.USER) ||
+  (activeRole === ERole.ADMIN && targetRole !== ERole.USER) ||
+  (activeRole === ERole.SUPERADMIN && targetRole === ERole.SUPERADMIN)
+);
 
 @Injectable()
 export class UsersService {
@@ -21,8 +28,17 @@ export class UsersService {
     private readonly imagesService: ImagesService
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, activeId?: number) {
     const { password, ...rest } = createUserDto;
+
+    // Check access by role
+    if (activeId) {
+      const activeUser = await this.findOne(activeId);
+
+      if (isForbiddenAccess(activeUser.role, rest.role)) {
+        throw new NotFoundException('User Not Found');
+      }
+    }
 
     if (await this.checkIsExist({ email: rest.email })) {
       throw new ConflictException('Email is already in use.');
@@ -37,11 +53,25 @@ export class UsersService {
     return this.findOne(created.id);
   }
 
-  async findAll({ limit, page, createdAt, role, search }: GetAllQueryDto) {
+  async findAll({ limit, page, createdAt, role, search }: GetAllQueryDto, activeId: number) {
+    const activeUser = await this.findOne(activeId); 
+
     const query = this.usersRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.image', 'image')
       .select([...userSelect, 'image']);
+
+    // Check access by role
+    switch (activeUser.role) {
+      case ERole.ADMIN:
+        query.andWhere('"user".role = :activeRole', { activeRole: ERole.USER });
+        break;
+      case ERole.SUPERADMIN:
+        query.andWhere('"user".role != :activeRole', { activeRole: ERole.SUPERADMIN });
+        break;
+      default:
+        throw new ForbiddenException();
+    }
 
     // Filter by Role
     if (role) {
@@ -81,16 +111,25 @@ export class UsersService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, activeId?: number) {
     const user = await this.usersRepository
-    .createQueryBuilder('user')
-    .leftJoinAndSelect('user.image', 'image')
-    .select([...userSelect, 'image'])
-    .where('"user".id = :id', { id })
-    .getOne();
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.image', 'image')
+      .select([...userSelect, 'image'])
+      .where('"user".id = :id', { id })
+      .getOne();
 
     if (!user) {
       throw new NotFoundException('User Not Found');
+    }
+
+    // Check access by role
+    if (activeId && activeId !== id) {
+      const activeUser = await this.findOne(activeId);
+
+      if (isForbiddenAccess(activeUser.role, user.role)) {
+        throw new NotFoundException('User Not Found');
+      }
     }
 
     return user;
@@ -107,6 +146,7 @@ export class UsersService {
   async update(
     id: number,
     updateUserDto: UpdateUserDto,
+    activeId: number,
     file?: Express.Multer.File
   ) {
     const user = await this.usersRepository.findOne({ where: { id }, relations: { image: true } });
@@ -114,8 +154,21 @@ export class UsersService {
       throw new NotFoundException('User Not Found');
     }
 
-    const { password, oldPassword, file: fileCommand, ...rest } = updateUserDto;
+    // Check access by role
+    if (id !== activeId) {
+      const activeUser = await this.findOne(activeId);
+  
+      if (isForbiddenAccess(activeUser.role, user.role)) {
+        throw new NotFoundException('User Not Found');
+      }
+    }
+
+    const { password, oldPassword, file: fileCommand, role, ...rest } = updateUserDto;
     let body: { password?: string, image?: Image } = {};
+
+    if (role) {
+      throw new ConflictException('There is no way to change the user`s role.');
+    }
 
     if (rest.email && user.email !== rest.email && await this.checkIsExist({ email: rest.email })) {
       throw new ConflictException('Email is already in use.');
@@ -125,7 +178,7 @@ export class UsersService {
     }
 
     if (password) {
-      if (!(await bcrypt.compare(oldPassword ?? '', user.password))) {
+      if (activeId === id && !(await bcrypt.compare(oldPassword ?? '', user.password))) {
         throw new BadRequestException('Invalid password');
       }
       body.password = await bcrypt.hash(password, this.saltRounds);
@@ -145,8 +198,17 @@ export class UsersService {
     return this.findOne(id);
   }
 
-  async remove(id: number) {
+  async remove(id: number, activeId: number) {
     const user = await this.findOne(id);
+
+    // Check access by role
+    if (id !== activeId) {
+      const activeUser = await this.findOne(activeId);
+
+      if (isForbiddenAccess(activeUser.role, user.role)) {
+        throw new NotFoundException('User Not Found');
+      }
+    }
 
     await this.companiesService.removeByUser(id);
 

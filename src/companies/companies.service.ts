@@ -1,4 +1,4 @@
-import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -23,23 +23,33 @@ export class CompaniesService {
 
   async create(
     createCompanyDto: CreateCompanyDto,
+    activeId: number,
     file?: Express.Multer.File
   ) {
     const { userId, ...rest } = createCompanyDto;
 
-    let body: { image?: Image } = {};
+    let body: { image?: Image, user?: User } = {};
 
     if (await this.checkIsExist({ title: rest.title })) {
       throw new ConflictException('Title is already in use.');
     }
 
-    const user = await this.usersService.findOne(userId);
+    // Check access by role
+    const activeUser = await this.usersService.findOne(activeId);
+    if (activeUser.role === ERole.USER) {
+      body.user = activeUser;
+    } else {
+      body.user = await this.usersService.findOne(userId);
+      if (body.user.role !== ERole.USER) {
+        throw new ForbiddenException('Only user can have companies.');
+      }
+    }
 
     if (file) {
       body.image = await this.imagesService.uploadImage(file);
     }
 
-    const created = await this.companiesRepository.save({ ...rest, ...body, user });
+    const created = await this.companiesRepository.save({ ...rest, ...body });
     return this.findOne(created.id);
   }
 
@@ -53,8 +63,8 @@ export class CompaniesService {
     capitalMin,
     capitalMax,
     search
-  }: GetAllQueryDto, activeUserId: number) {
-    const activeUser = await this.usersService.findOne(activeUserId);
+  }: GetAllQueryDto, activeId: number) {
+    const activeUser = await this.usersService.findOne(activeId);
 
     const query = this.companiesRepository
       .createQueryBuilder('company')
@@ -65,9 +75,9 @@ export class CompaniesService {
 
     // Filter by Company.user
     if (activeUser.role === ERole.USER) {
-      query.where('company.user = :user', { user: activeUser.id });
+      query.andWhere('company.user = :user', { user: activeUser.id });
     } else if (+user) {
-      query.where('company.user = :user', { user: +user });
+      query.andWhere('company.user = :user', { user: +user });
     }
 
     // Filter by Date
@@ -121,7 +131,7 @@ export class CompaniesService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, activeId?: number) {
     const company = await this.companiesRepository
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.user', 'user')
@@ -135,6 +145,15 @@ export class CompaniesService {
       throw new NotFoundException('Company Not Found');
     }
 
+    // Check access by role
+    if (activeId && activeId !== company.user.id) {
+      const activeUser = await this.usersService.findOne(activeId);
+
+      if (activeUser.role === ERole.USER) {
+        throw new NotFoundException('Company Not Found');
+      }
+    }
+
     return company;
   }
 
@@ -145,9 +164,19 @@ export class CompaniesService {
   async update(
     id: number,
     updateCompanyDto: UpdateCompanyDto,
+    activeId: number,
     file?: Express.Multer.File
   ) {
     const company = await this.findOne(id);
+
+    // Check access by role
+    if (activeId !== company.user.id) {
+      const activeUser = await this.usersService.findOne(activeId);
+
+      if (activeUser.role === ERole.USER) {
+        throw new NotFoundException('Company Not Found');
+      }
+    }
 
     const { userId, file: fileCommand, ...rest } = updateCompanyDto;
     let body: { user?: User, image?: Image } = {};
@@ -157,8 +186,10 @@ export class CompaniesService {
     }
 
     if (userId) {
-      const user = await this.usersService.findOne(userId);
-      body.user = user;
+      body.user = await this.usersService.findOne(userId);
+      if (body.user.role !== ERole.USER) {
+        throw new ForbiddenException('Only user can have companies.');
+      }
     }
 
     if (file) {
@@ -175,8 +206,17 @@ export class CompaniesService {
     return this.findOne(id);
   }
 
-  async remove(id: number) {
+  async remove(id: number, activeId: number) {
     const company = await this.findOne(id);
+
+    // Check access by role
+    if (activeId !== company.user.id) {
+      const activeUser = await this.usersService.findOne(activeId);
+
+      if (activeUser.role === ERole.USER) {
+        throw new NotFoundException('Company Not Found');
+      }
+    }
 
     if (company.image) {
       await this.imagesService.remove(company.image.id);

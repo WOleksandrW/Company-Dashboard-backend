@@ -15,34 +15,45 @@ export class CompaniesController {
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   create(
+    @Req() req,
     @Body(ValidationPipe) createCompanyDto: CreateCompanyDto,
     @UploadedFile() file: Express.Multer.File
   ) {
-    return this.companiesService.create(createCompanyDto, file);
+    return this.companiesService.create(createCompanyDto, req.user.id, file);
   }
 
   @Get()
-  findAll(@Req() req, @Query(ValidationPipe) query: GetAllQueryDto) {
+  findAll(
+    @Req() req,
+    @Query(ValidationPipe) query: GetAllQueryDto
+  ) {
     return this.companiesService.findAll(query, req.user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.companiesService.findOne(id);
+  findOne(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.companiesService.findOne(id, req.user.id);
   }
 
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   update(
+    @Req() req,
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateCompanyDto: UpdateCompanyDto,
     @UploadedFile() file: Express.Multer.File
   ) {
-    return this.companiesService.update(id, updateCompanyDto, file);
+    return this.companiesService.update(id, updateCompanyDto, req.user.id, file);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.companiesService.remove(id);
+  remove(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.companiesService.remove(id, req.user.id);
   }
 }

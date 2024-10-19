@@ -15,14 +15,20 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body(ValidationPipe) createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  create(
+    @Req() req,
+    @Body(ValidationPipe) createUserDto: CreateUserDto
+  ) {
+    return this.usersService.create(createUserDto, req.user.id);
   }
 
   @Roles(ERole.ADMIN, ERole.SUPERADMIN)
   @Get()
-  findAll(@Query(ValidationPipe) query: GetAllQueryDto) {
-    return this.usersService.findAll(query);
+  findAll(
+    @Req() req,
+    @Query(ValidationPipe) query: GetAllQueryDto
+  ) {
+    return this.usersService.findAll(query, req.user.id);
   }
 
   @Get('me')
@@ -31,22 +37,29 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  findOne(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.usersService.findOne(id, req.user.id);
   }
 
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   update(
+    @Req() req,
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
     @UploadedFile() file: Express.Multer.File
   ) {
-    return this.usersService.update(id, updateUserDto, file);
+    return this.usersService.update(id, updateUserDto, req.user.id, file);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  remove(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.usersService.remove(id, req.user.id);
   }
 }

@@ -7,6 +7,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
+import { ERole } from 'src/enums/ERole';
 
 const passwordRegEx =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
@@ -34,6 +35,6 @@ export class CreateUserDto {
   password: string;
 
   @IsString()
-  @IsEnum(['USER', 'ADMIN', 'SUPER-ADMIN'], { message: 'Valid role required' })
-  role: string;
+  @IsEnum([ERole.USER, ERole.ADMIN], { message: 'Valid role required' })
+  role: ERole;
 }

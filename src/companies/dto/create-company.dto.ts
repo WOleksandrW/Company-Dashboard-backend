@@ -3,6 +3,7 @@ import {
   IsAlphanumeric,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Length,
   MinLength,
@@ -28,6 +29,7 @@ export class CreateCompanyDto {
   @Type(() => Number)
   capital: number;
 
+  @IsOptional()
   @IsInt({ message: 'User ID must be an integer.' })
   @Type(() => Number)
   userId: number;
