@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Query, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -8,7 +8,7 @@ import { GetAllQueryDto } from './dto/get-all-query.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { EOrder } from 'src/enums/order.enum';
-import { companySwaggerEntity, companySwaggerPatch, companySwaggerPost, userSwaggerPatch } from 'src/constants/swagger-constants';
+import { getCompanyResponse, getAllResponse, updateCompanyResponse } from 'src/constants/swagger-constants';
 
 @ApiTags('Companies Controller')
 @ApiBearerAuth('Authorization')
@@ -20,15 +20,8 @@ export class CompaniesController {
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Create a company.' })
-  @ApiBody({
-    description: 'Company object that needs to be created.',
-    schema: { example: { ...companySwaggerPost, userId: companySwaggerEntity.id } }
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'The company has been successfully created.',
-    schema: { example: companySwaggerEntity }
-  })
+  @ApiBody({ description: 'Company object that needs to be created.', type: CreateCompanyDto })
+  @ApiCreatedResponse({ description: 'The company has been successfully created.', schema: getCompanyResponse })
   create(
     @Req() req,
     @Body(ValidationPipe) createCompanyDto: CreateCompanyDto,
@@ -39,65 +32,16 @@ export class CompaniesController {
 
   @Get()
   @ApiOperation({ summary: 'Get all companies.' })
-  @ApiQuery({
-    name: 'user',
-    description: 'Filter companies by user',
-    required: false,
-    example: 1
-  })
-  @ApiQuery({
-    name: 'limit',
-    description: 'Limit of companies',
-    required: false,
-    example: 1
-  })
-  @ApiQuery({
-    name: 'page',
-    description: 'Page number for pagination',
-    required: false,
-    example: 1
-  })
-  @ApiQuery({
-    name: 'titleOrder',
-    description: 'Order companies by title',
-    required: false,
-    example: EOrder.ASC
-  })
-  @ApiQuery({
-    name: 'serviceOrder',
-    description: 'Order companies by service',
-    required: false,
-    example: EOrder.ASC
-  })
-  @ApiQuery({
-    name: 'createdAt',
-    description: 'Filter companies by createdAt date',
-    required: false,
-    example: '2024-10-17'
-  })
-  @ApiQuery({
-    name: 'capitalMin',
-    description: 'Filter companies by minimal capital',
-    required: false,
-    example: 124
-  })
-  @ApiQuery({
-    name: 'capitalMax',
-    description: 'Filter companies by maximal capital',
-    required: false,
-    example: 1754
-  })
-  @ApiQuery({
-    name: 'search',
-    description: 'Filter companies by search value (title)',
-    required: false,
-    example: 'example'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The companies has been successfully received.',
-    schema: { example: [companySwaggerEntity] }
-  })
+  @ApiQuery({ name: 'user', description: 'Filter companies by user', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', description: 'Limit of companies', required: false, example: 1 })
+  @ApiQuery({ name: 'page', description: 'Page number for pagination', required: false, example: 1 })
+  @ApiQuery({ name: 'titleOrder', description: 'Order companies by title', required: false, example: EOrder.ASC })
+  @ApiQuery({ name: 'serviceOrder', description: 'Order companies by service', required: false, example: EOrder.ASC })
+  @ApiQuery({ name: 'createdAt', description: 'Filter companies by createdAt date', required: false, example: '2024-10-17' })
+  @ApiQuery({ name: 'capitalMin', description: 'Filter companies by minimal capital', required: false, example: 124 })
+  @ApiQuery({ name: 'capitalMax', description: 'Filter companies by maximal capital', required: false, example: 1754 })
+  @ApiQuery({ name: 'search', description: 'Filter companies by search value (title)', required: false })
+  @ApiOkResponse({ description: 'The companies has been successfully received.', schema: getAllResponse(getCompanyResponse) })
   findAll(
     @Req() req,
     @Query(ValidationPipe) query: GetAllQueryDto
@@ -107,16 +51,8 @@ export class CompaniesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get the company.' })
-  @ApiParam({
-    name: 'id',
-    description: 'ID of the company to receive.',
-    example: '1'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The company has been successfully received.',
-    schema: { example: companySwaggerEntity }
-  })
+  @ApiParam({ name: 'id', description: 'ID of the company to receive.', example: '1' })
+  @ApiOkResponse({ description: 'The company has been successfully received.', schema: getCompanyResponse })
   findOne(
     @Req() req,
     @Param('id', ParseIntPipe) id: number
@@ -127,20 +63,9 @@ export class CompaniesController {
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Update the company.' })
-  @ApiParam({
-    name: 'id',
-    description: 'ID of the company to update.',
-    example: '1'
-  })
-  @ApiBody({
-    description: 'Company object that needs to be updated.',
-    schema: { example: { ...companySwaggerPatch, userId: 150 } }
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The company has been successfully updated.',
-    schema: { example: { ...companySwaggerEntity, ...companySwaggerPatch, updatedAt: '2024-10-03T14:59:18.438Z', user: { ...companySwaggerEntity.user, ...userSwaggerPatch, id: 150 } } }
-  })
+  @ApiParam({ name: 'id', description: 'ID of the company to update.', example: '1' })
+  @ApiBody({ description: 'Company object that needs to be updated.', type: UpdateCompanyDto })
+  @ApiOkResponse({ description: 'The company has been successfully updated.', schema: updateCompanyResponse })
   update(
     @Req() req,
     @Param('id', ParseIntPipe) id: number,
@@ -152,13 +77,8 @@ export class CompaniesController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Remove the company.' })
-  @ApiParam({
-    name: 'id',
-    description: 'ID of the company to remove.',
-    example: '1'
-  })
-  @ApiResponse({
-    status: 200,
+  @ApiParam({ name: 'id', description: 'ID of the company to remove.', example: '1' })
+  @ApiOkResponse({
     description: 'The company has been successfully removed.',
     schema: { example: { message: 'Company has been successfully removed' } }
   })
