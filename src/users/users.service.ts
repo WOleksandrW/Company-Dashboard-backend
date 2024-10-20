@@ -149,7 +149,7 @@ export class UsersService {
       throw new NotFoundException('User Not Found');
     }
 
-    const { password, oldPassword, file: fileCommand, role, ...rest } = updateUserDto;
+    const { password, oldPassword, deleteFile, role, ...rest } = updateUserDto;
     let body: { password?: string, image?: Image } = {};
 
     if (role) {
@@ -176,7 +176,7 @@ export class UsersService {
       } else {
         body.image = await this.imagesService.uploadImage(file);
       }
-    } else if ((fileCommand === null || fileCommand === 'null') && user.image) {
+    } else if ((deleteFile === 'true' || deleteFile === true) && user.image) {
       await this.imagesService.remove(user.image.id);
     }
 

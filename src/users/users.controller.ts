@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,6 +10,7 @@ import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { ERole } from 'src/enums/role.enum';
 import { getUserResponse, getAllResponse, updateUserResponse } from 'src/constants/swagger-constants';
+import { SwaggerFileUploadDto } from 'src/dto/swagger-file.dto';
 
 @ApiTags('Users Controller')
 @ApiBearerAuth('Authorization')
@@ -67,7 +68,17 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Update the user.' })
   @ApiParam({ name: 'id', description: 'ID of the user to update.', example: '1' })
-  @ApiBody({ description: 'User object that needs to be updated.', type: UpdateUserDto })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'User object that needs to be updated.',
+    schema: {
+      type: 'object',
+      allOf: [
+        { $ref: getSchemaPath(UpdateUserDto) },
+        { $ref: getSchemaPath(SwaggerFileUploadDto) }
+      ],
+    }
+  })
   @ApiOkResponse({ description: 'The user has been successfully updated.', schema: updateUserResponse })
   update(
     @Req() req,

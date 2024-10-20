@@ -1,7 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { CreateCompanyDto } from './create-company.dto';
-import { Equals, IsOptional, ValidateIf } from 'class-validator';
+import { IsBoolean, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateCompanyDto extends PartialType(CreateCompanyDto) {
   @ApiPropertyOptional({
@@ -42,11 +43,12 @@ export class UpdateCompanyDto extends PartialType(CreateCompanyDto) {
   userId?: number;
 
   @ApiPropertyOptional({
-    description: 'File field. Use "null" as a string to indicate no file.',
-    example: 'null',
+    description: 'Use "true" as a string to remove file.',
+    type: 'boolean',
+    example: true
   })
   @IsOptional()
-  @ValidateIf((obj) => obj.file !== null)
-  @Equals('null', { message: 'File must be equal to "null".' })
-  file?: null | 'null';
+  @IsBoolean()
+  @Type(() => Boolean)
+  deleteFile?: boolean | 'true' | 'false';
 }

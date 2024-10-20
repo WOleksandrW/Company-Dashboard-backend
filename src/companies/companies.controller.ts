@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, UseGuards, Query, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -9,6 +9,7 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { EOrder } from 'src/enums/order.enum';
 import { getCompanyResponse, getAllResponse, updateCompanyResponse } from 'src/constants/swagger-constants';
+import { SwaggerFileUploadDto } from 'src/dto/swagger-file.dto';
 
 @ApiTags('Companies Controller')
 @ApiBearerAuth('Authorization')
@@ -20,7 +21,17 @@ export class CompaniesController {
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Create a company.' })
-  @ApiBody({ description: 'Company object that needs to be created.', type: CreateCompanyDto })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Company object that needs to be created.',
+    schema: {
+      type: 'object',
+      allOf: [
+        { $ref: getSchemaPath(CreateCompanyDto) },
+        { $ref: getSchemaPath(SwaggerFileUploadDto) }
+      ],
+    }
+  })
   @ApiCreatedResponse({ description: 'The company has been successfully created.', schema: getCompanyResponse })
   create(
     @Req() req,
@@ -64,7 +75,17 @@ export class CompaniesController {
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Update the company.' })
   @ApiParam({ name: 'id', description: 'ID of the company to update.', example: '1' })
-  @ApiBody({ description: 'Company object that needs to be updated.', type: UpdateCompanyDto })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Company object that needs to be updated.',
+    schema: {
+      type: 'object',
+      allOf: [
+        { $ref: getSchemaPath(UpdateCompanyDto) },
+        { $ref: getSchemaPath(SwaggerFileUploadDto) }
+      ],
+    }
+  })
   @ApiOkResponse({ description: 'The company has been successfully updated.', schema: updateCompanyResponse })
   update(
     @Req() req,

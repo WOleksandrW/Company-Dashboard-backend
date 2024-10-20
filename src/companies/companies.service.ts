@@ -167,7 +167,7 @@ export class CompaniesService {
       throw new NotFoundException('Company Not Found');
     }
 
-    const { userId, file: fileCommand, ...rest } = updateCompanyDto;
+    const { userId, deleteFile, ...rest } = updateCompanyDto;
     let body: { user?: User, image?: Image } = {};
 
     if (rest.title && company.title !== rest.title && await this.checkIsExist({ title: rest.title })) {
@@ -187,7 +187,7 @@ export class CompaniesService {
       } else {
         body.image = await this.imagesService.uploadImage(file);
       }
-    } else if ((fileCommand === null || fileCommand === 'null') && company.image) {
+    } else if ((deleteFile === 'true' || deleteFile === true) && company.image) {
       await this.imagesService.remove(company.image.id);
     }
 
