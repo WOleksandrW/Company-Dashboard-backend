@@ -11,7 +11,7 @@ export class AuthService {
   ) {}
 
   async login(email: string, password: string) {
-    const user = await this.usersService.findOneByEmail(email);
+    const user = await this.usersService.findOneBy({ email });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Email or password is incorrect');
@@ -27,7 +27,7 @@ export class AuthService {
   async refreshToken(token: string) {
     const { exp, iat, ...rest } = await this.jwtService.decode(token);
 
-    const user = await this.usersService.findOneByEmail(rest.email);
+    const user = await this.usersService.findOneBy({ email: rest.email });
     if (!user) {
       throw new NotFoundException('User not found');
     }

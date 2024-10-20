@@ -28,16 +28,12 @@ export class UsersService {
     private readonly imagesService: ImagesService
   ) {}
 
-  async create(createUserDto: CreateUserDto, activeId?: number) {
+  async create(createUserDto: CreateUserDto, activeUser?: User) {
     const { password, ...rest } = createUserDto;
 
     // Check access by role
-    if (activeId) {
-      const activeUser = await this.findOne(activeId);
-
-      if (isForbiddenAccess(activeUser.role, rest.role)) {
-        throw new NotFoundException('User Not Found');
-      }
+    if (activeUser && isForbiddenAccess(activeUser.role, rest.role)) {
+      throw new ForbiddenException('You don`t have enough rights');
     }
 
     if (await this.checkIsExist({ email: rest.email })) {
@@ -53,9 +49,7 @@ export class UsersService {
     return this.findOne(created.id);
   }
 
-  async findAll({ limit, page, createdAt, role, search }: GetAllQueryDto, activeId: number) {
-    const activeUser = await this.findOne(activeId); 
-
+  async findAll({ limit, page, createdAt, role, search }: GetAllQueryDto, activeUser: User) {
     const query = this.usersRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.image', 'image')
@@ -111,7 +105,7 @@ export class UsersService {
     };
   }
 
-  async findOne(id: number, activeId?: number) {
+  async findOne(id: number, activeUser?: User) {
     const user = await this.usersRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.image', 'image')
@@ -124,19 +118,15 @@ export class UsersService {
     }
 
     // Check access by role
-    if (activeId && activeId !== id) {
-      const activeUser = await this.findOne(activeId);
-
-      if (isForbiddenAccess(activeUser.role, user.role)) {
-        throw new NotFoundException('User Not Found');
-      }
+    if (activeUser && activeUser.id !== id && isForbiddenAccess(activeUser.role, user.role)) {
+      throw new NotFoundException('User Not Found');
     }
 
     return user;
   }
 
-  findOneByEmail(email: string) {
-    return this.usersRepository.findOneBy({ email });
+  findOneBy(where: FindOptionsWhere<User>) {
+    return this.usersRepository.findOneBy(where);
   }
 
   checkIsExist(where: FindOptionsWhere<User>) {
@@ -146,7 +136,7 @@ export class UsersService {
   async update(
     id: number,
     updateUserDto: UpdateUserDto,
-    activeId: number,
+    activeUser: User,
     file?: Express.Multer.File
   ) {
     const user = await this.usersRepository.findOne({ where: { id }, relations: { image: true } });
@@ -155,12 +145,8 @@ export class UsersService {
     }
 
     // Check access by role
-    if (id !== activeId) {
-      const activeUser = await this.findOne(activeId);
-  
-      if (isForbiddenAccess(activeUser.role, user.role)) {
-        throw new NotFoundException('User Not Found');
-      }
+    if (id !== activeUser.id && isForbiddenAccess(activeUser.role, user.role)) {
+      throw new NotFoundException('User Not Found');
     }
 
     const { password, oldPassword, file: fileCommand, role, ...rest } = updateUserDto;
@@ -178,7 +164,7 @@ export class UsersService {
     }
 
     if (password) {
-      if (activeId === id && !(await bcrypt.compare(oldPassword ?? '', user.password))) {
+      if (activeUser.id === id && !(await bcrypt.compare(oldPassword ?? '', user.password))) {
         throw new BadRequestException('Invalid password');
       }
       body.password = await bcrypt.hash(password, this.saltRounds);
@@ -198,16 +184,12 @@ export class UsersService {
     return this.findOne(id);
   }
 
-  async remove(id: number, activeId: number) {
+  async remove(id: number, activeUser: User) {
     const user = await this.findOne(id);
 
     // Check access by role
-    if (id !== activeId) {
-      const activeUser = await this.findOne(activeId);
-
-      if (isForbiddenAccess(activeUser.role, user.role)) {
-        throw new NotFoundException('User Not Found');
-      }
+    if (id !== activeUser.id && isForbiddenAccess(activeUser.role, user.role)) {
+      throw new NotFoundException('User Not Found');
     }
 
     await this.companiesService.removeByUser(id);

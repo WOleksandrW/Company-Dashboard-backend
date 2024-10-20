@@ -26,7 +26,7 @@ export class UsersController {
     @Req() req,
     @Body(ValidationPipe) createUserDto: CreateUserDto
   ) {
-    return this.usersService.create(createUserDto, req.user.id);
+    return this.usersService.create(createUserDto, req.user);
   }
 
   @Roles(ERole.ADMIN, ERole.SUPERADMIN)
@@ -42,7 +42,7 @@ export class UsersController {
     @Req() req,
     @Query(ValidationPipe) query: GetAllQueryDto
   ) {
-    return this.usersService.findAll(query, req.user.id);
+    return this.usersService.findAll(query, req.user);
   }
 
   @Get('me')
@@ -60,7 +60,7 @@ export class UsersController {
     @Req() req,
     @Param('id', ParseIntPipe) id: number
   ) {
-    return this.usersService.findOne(id, req.user.id);
+    return this.usersService.findOne(id, req.user);
   }
 
   @Patch(':id')
@@ -75,7 +75,7 @@ export class UsersController {
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
     @UploadedFile() file: Express.Multer.File
   ) {
-    return this.usersService.update(id, updateUserDto, req.user.id, file);
+    return this.usersService.update(id, updateUserDto, req.user, file);
   }
 
   @Delete(':id')
@@ -89,6 +89,6 @@ export class UsersController {
     @Req() req,
     @Param('id', ParseIntPipe) id: number
   ) {
-    return this.usersService.remove(id, req.user.id);
+    return this.usersService.remove(id, req.user);
   }
 }

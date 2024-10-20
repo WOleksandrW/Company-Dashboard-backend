@@ -23,7 +23,7 @@ export class CompaniesService {
 
   async create(
     createCompanyDto: CreateCompanyDto,
-    activeId: number,
+    activeUser: User,
     file?: Express.Multer.File
   ) {
     const { userId, ...rest } = createCompanyDto;
@@ -35,7 +35,6 @@ export class CompaniesService {
     }
 
     // Check access by role
-    const activeUser = await this.usersService.findOne(activeId);
     if (activeUser.role === ERole.USER) {
       body.user = activeUser;
     } else {
@@ -63,9 +62,7 @@ export class CompaniesService {
     capitalMin,
     capitalMax,
     search
-  }: GetAllQueryDto, activeId: number) {
-    const activeUser = await this.usersService.findOne(activeId);
-
+  }: GetAllQueryDto, activeUser: User) {
     const query = this.companiesRepository
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.user', 'user')
@@ -131,7 +128,7 @@ export class CompaniesService {
     };
   }
 
-  async findOne(id: number, activeId?: number) {
+  async findOne(id: number, activeUser?: User) {
     const company = await this.companiesRepository
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.user', 'user')
@@ -146,12 +143,8 @@ export class CompaniesService {
     }
 
     // Check access by role
-    if (activeId && activeId !== company.user.id) {
-      const activeUser = await this.usersService.findOne(activeId);
-
-      if (activeUser.role === ERole.USER) {
-        throw new NotFoundException('Company Not Found');
-      }
+    if (activeUser && activeUser.id !== company.user.id && activeUser.role === ERole.USER) {
+      throw new NotFoundException('Company Not Found');
     }
 
     return company;
@@ -164,18 +157,14 @@ export class CompaniesService {
   async update(
     id: number,
     updateCompanyDto: UpdateCompanyDto,
-    activeId: number,
+    activeUser: User,
     file?: Express.Multer.File
   ) {
     const company = await this.findOne(id);
 
     // Check access by role
-    if (activeId !== company.user.id) {
-      const activeUser = await this.usersService.findOne(activeId);
-
-      if (activeUser.role === ERole.USER) {
-        throw new NotFoundException('Company Not Found');
-      }
+    if (activeUser.id !== company.user.id && activeUser.role === ERole.USER) {
+      throw new NotFoundException('Company Not Found');
     }
 
     const { userId, file: fileCommand, ...rest } = updateCompanyDto;
@@ -206,16 +195,12 @@ export class CompaniesService {
     return this.findOne(id);
   }
 
-  async remove(id: number, activeId: number) {
+  async remove(id: number, activeUser: User) {
     const company = await this.findOne(id);
 
     // Check access by role
-    if (activeId !== company.user.id) {
-      const activeUser = await this.usersService.findOne(activeId);
-
-      if (activeUser.role === ERole.USER) {
-        throw new NotFoundException('Company Not Found');
-      }
+    if (activeUser.id !== company.user.id && activeUser.role === ERole.USER) {
+      throw new NotFoundException('Company Not Found');
     }
 
     if (company.image) {

@@ -27,7 +27,7 @@ export class CompaniesController {
     @Body(ValidationPipe) createCompanyDto: CreateCompanyDto,
     @UploadedFile() file: Express.Multer.File
   ) {
-    return this.companiesService.create(createCompanyDto, req.user.id, file);
+    return this.companiesService.create(createCompanyDto, req.user, file);
   }
 
   @Get()
@@ -46,7 +46,7 @@ export class CompaniesController {
     @Req() req,
     @Query(ValidationPipe) query: GetAllQueryDto
   ) {
-    return this.companiesService.findAll(query, req.user.id);
+    return this.companiesService.findAll(query, req.user);
   }
 
   @Get(':id')
@@ -57,7 +57,7 @@ export class CompaniesController {
     @Req() req,
     @Param('id', ParseIntPipe) id: number
   ) {
-    return this.companiesService.findOne(id, req.user.id);
+    return this.companiesService.findOne(id, req.user);
   }
 
   @Patch(':id')
@@ -72,7 +72,7 @@ export class CompaniesController {
     @Body(ValidationPipe) updateCompanyDto: UpdateCompanyDto,
     @UploadedFile() file: Express.Multer.File
   ) {
-    return this.companiesService.update(id, updateCompanyDto, req.user.id, file);
+    return this.companiesService.update(id, updateCompanyDto, req.user, file);
   }
 
   @Delete(':id')
@@ -86,6 +86,6 @@ export class CompaniesController {
     @Req() req,
     @Param('id', ParseIntPipe) id: number
   ) {
-    return this.companiesService.remove(id, req.user.id);
+    return this.companiesService.remove(id, req.user);
   }
 }
