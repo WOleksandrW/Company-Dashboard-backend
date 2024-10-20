@@ -29,7 +29,7 @@ export class AuthService {
 
     const user = await this.usersService.findOneBy({ email: rest.email });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Your entry is not in the DB');
     }
 
     return this.jwtService.sign(rest);

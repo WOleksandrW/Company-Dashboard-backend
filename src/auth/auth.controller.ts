@@ -37,6 +37,14 @@ export class AuthController {
     return this.usersService.create({ ...signUpDto, role: ERole.USER });
   }
 
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password.' })
+  @ApiBody({ description: 'Email and password to reset password', type: SignInDto })
+  @ApiCreatedResponse({ description: 'Password reset successfully.', schema: { example: true } })
+  async resetPassword(@Body() { email, password }: SignInDto) {
+    return this.usersService.resetPassword(email, password);
+  }
+
   @Post('refresh-token')
   @ApiOperation({ summary: 'Refresh JWT.' })
   @ApiBody({

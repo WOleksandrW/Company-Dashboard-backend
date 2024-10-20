@@ -184,6 +184,17 @@ export class UsersService {
     return this.findOne(id);
   }
 
+  async resetPassword(email: string, password: string) {
+    const user = await this.findOneBy({ email });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hash = await bcrypt.hash(password, this.saltRounds);
+    await this.usersRepository.update(user.id, { password: hash });
+    return true;
+  }
+
   async remove(id: number, activeUser: User) {
     const user = await this.findOne(id);
 

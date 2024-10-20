@@ -1,10 +1,10 @@
 import {
   IsNotEmpty,
-  Length,
+  IsString
 } from 'class-validator';
 
 export class RefreshTokenDto {
   @IsNotEmpty()
-  @Length(179, 179, { message: 'Token must have 179 characters.' })
+  @IsString({ message: 'Token must be a string.' })
   token: string;
 }
