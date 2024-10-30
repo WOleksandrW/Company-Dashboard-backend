@@ -13,7 +13,8 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.usersService.findOneBy({ email });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    const isPasswordValid = user && await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       throw new UnauthorizedException('Email or password is incorrect');
     }
 

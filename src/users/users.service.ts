@@ -36,10 +36,13 @@ export class UsersService {
       throw new ForbiddenException('You don`t have enough rights');
     }
 
-    if (await this.checkIsExist({ email: rest.email })) {
+    const isEmailInUse = await this.checkIsExist({ email: rest.email });
+    if (isEmailInUse) {
       throw new ConflictException('Email is already in use.');
     }
-    if (await this.checkIsExist({ username: rest.username })) {
+
+    const isUsernameInUse = await this.checkIsExist({ username: rest.username });
+    if (isUsernameInUse) {
       throw new ConflictException('Username is already in use.');
     }
 
@@ -156,15 +159,22 @@ export class UsersService {
       throw new ConflictException('There is no way to change the user`s role.');
     }
 
-    if (rest.email && user.email !== rest.email && await this.checkIsExist({ email: rest.email })) {
+    const isEmailChanged = rest.email && user.email !== rest.email;
+    const isEmailInUse = isEmailChanged && await this.checkIsExist({ email: rest.email });
+    if (isEmailInUse) {
       throw new ConflictException('Email is already in use.');
     }
-    if (rest.username && user.username !== rest.username && await this.checkIsExist({ username: rest.username })) {
+
+    const isUsernameChanged = rest.username && user.username !== rest.username;
+    const isUsernameInUse = isUsernameChanged && await this.checkIsExist({ username: rest.username })
+    if (isUsernameInUse) {
       throw new ConflictException('Username is already in use.');
     }
 
     if (password) {
-      if (activeUser.id === id && !(await bcrypt.compare(oldPassword ?? '', user.password))) {
+      const isSameUser = activeUser.id === id;
+      const isOldPasswordValid = await bcrypt.compare(oldPassword ?? '', user.password);
+      if (isSameUser && !isOldPasswordValid) {
         throw new BadRequestException('Invalid password');
       }
       body.password = await bcrypt.hash(password, this.saltRounds);

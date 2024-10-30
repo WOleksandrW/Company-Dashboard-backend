@@ -30,7 +30,8 @@ export class CompaniesService {
 
     let body: { image?: Image, user?: User } = {};
 
-    if (await this.checkIsExist({ title: rest.title })) {
+    const isTitleInUse = await this.checkIsExist({ title: rest.title });
+    if (isTitleInUse) {
       throw new ConflictException('Title is already in use.');
     }
 
@@ -170,7 +171,9 @@ export class CompaniesService {
     const { userId, deleteFile, ...rest } = updateCompanyDto;
     let body: { user?: User, image?: Image } = {};
 
-    if (rest.title && company.title !== rest.title && await this.checkIsExist({ title: rest.title })) {
+    const isTitleChanged = rest.title && company.title !== rest.title;
+    const isTitleInUse = isTitleChanged && await this.checkIsExist({ title: rest.title });
+    if (isTitleInUse) {
       throw new ConflictException('Title is already in use.');
     }
 
