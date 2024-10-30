@@ -186,7 +186,7 @@ export class UsersService {
       } else {
         body.image = await this.imagesService.uploadImage(file);
       }
-    } else if ((deleteFile === 'true' || deleteFile === true) && user.image) {
+    } else if (!!deleteFile && JSON.parse(deleteFile as string) && user.image) {
       await this.imagesService.remove(user.image.id);
     }
 

@@ -1,8 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { CreateUserDto } from './create-user.dto';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @ApiPropertyOptional({
@@ -47,6 +47,10 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   @IsOptional()
   @IsBoolean()
-  @Type(() => Boolean)
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
   deleteFile?: boolean | 'true' | 'false';
 }

@@ -190,7 +190,7 @@ export class CompaniesService {
       } else {
         body.image = await this.imagesService.uploadImage(file);
       }
-    } else if ((deleteFile === 'true' || deleteFile === true) && company.image) {
+    } else if (JSON.parse(deleteFile as string) && company.image) {
       await this.imagesService.remove(company.image.id);
     }
 
