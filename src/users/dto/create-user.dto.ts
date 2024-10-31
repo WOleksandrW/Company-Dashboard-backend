@@ -9,10 +9,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { ERole } from 'src/enums/role.enum';
-
-const usernameRegEx = /^[a-zA-Z0-9_]*$/;
-const passwordRegEx =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+import { passwordRegExp, usernameRegExp } from 'src/helpers/regexps';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -25,7 +22,7 @@ export class CreateUserDto {
   @IsString({ message: 'Username must be a string.' })
   @MinLength(3, { message: 'Username must have at least 3 characters.' })
   @MaxLength(20, { message: 'Username must not exceed 20 characters.' })
-  @Matches(usernameRegEx, { message: 'Username can only contain letters, numbers, and underscores.' })
+  @Matches(usernameRegExp, { message: 'Username can only contain letters, numbers, and underscores.' })
   username: string;
 
   @ApiProperty({
@@ -51,7 +48,7 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'Password is required.' })
   @MinLength(8, { message: 'Password must have at least 8 characters.' })
   @MaxLength(20, { message: 'Password must not exceed 20 characters.' })
-  @Matches(passwordRegEx, {
+  @Matches(passwordRegExp, {
     message: `Password must contain at least one uppercase letter, 
     one lowercase letter, 
     one number and 

@@ -11,8 +11,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-
-const titleRegEx = /^[a-zA-Z0-9\s]*$/;
+import { titleRegExp } from 'src/helpers/regexps';
 
 export class CreateCompanyDto {
   @ApiProperty({
@@ -25,7 +24,7 @@ export class CreateCompanyDto {
   @IsString({ message: 'Company title must be a string.' })
   @MinLength(3, { message: 'Title must have at least 3 characters.' })
   @MaxLength(30, { message: 'Title must not exceed 30 characters.' })
-  @Matches(titleRegEx, { message: 'Title can only contain letters, numbers, and spaces.' })
+  @Matches(titleRegExp, { message: 'Title can only contain letters, numbers, and spaces.' })
   title: string;
 
   @ApiProperty({
