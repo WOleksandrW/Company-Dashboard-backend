@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { jwtConstants } from 'src/constants/jwt-constants';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,7 @@ export class AuthService {
     const payload = { email: user.email, sub: user.id };
     return {
       access_token: this.jwtService.sign(payload),
-      refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' })
+      refresh_token: this.jwtService.sign(payload, { expiresIn: jwtConstants.refreshExpiresIn })
     };
   }
 
