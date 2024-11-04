@@ -4,6 +4,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { jwtConstants } from '../constants/jwt-constants';
 import { UsersService } from 'src/users/users.service';
+import { errorCatcher } from 'src/helpers/errorCatcher';
+import { EXCEPTION_TAG } from 'src/constants/error-constants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -19,11 +21,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { sub: number, email: string }) {
-    const user = await this.userService.findOneBy({ id: payload.sub });
-    if (!user) {
-      throw new UnauthorizedException();
+    try {
+      const user = await this.userService.findOneBy({ id: payload.sub });
+      if (!user) {
+        throw new UnauthorizedException('', { description: EXCEPTION_TAG });
+      }
+      return user;
+    } catch (error) {
+      errorCatcher(error, 'JWT strategy error', EXCEPTION_TAG);
     }
-    return user;
   }
 }
 
