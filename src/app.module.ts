@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ImagesModule } from './images/images.module';
 import { Image } from './images/entities/image.entity';
+import { AppDataSource } from './data-source';
 
 @Module({
   imports: [
@@ -19,15 +20,9 @@ import { Image } from './images/entities/image.entity';
       envFilePath: '.env'
     }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.NODE_ENV === 'docker' ? 'db' : 'localhost',
-      port: 5432,
-      password: 'postgres',
-      username: 'postgres',
+      ...AppDataSource.options,
       entities: [User, Company, Image],
-      database: process.env.NODE_ENV === 'docker' ? 'postgres' : 'companyAppDB',
-      synchronize: true,
-      logging: true,
+      autoLoadEntities: true
     }),
     UsersModule,
     CompaniesModule,
